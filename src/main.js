@@ -25,7 +25,13 @@ function homeView() {
 function navigate() {
   const hash = location.hash.slice(1) || '/';
   const view = routes[hash] ?? notFoundView;
-  document.getElementById('app').innerHTML = view();
+  const result = view();
+  if (typeof result === 'string') {
+    document.getElementById('app').innerHTML = result;
+  } else {
+    document.getElementById('app').innerHTML = result.html;
+    result.init?.();
+  }
   updateActiveNav(hash);
 }
 
