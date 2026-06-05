@@ -66,6 +66,21 @@ vite.config.js
 - No comments unless the *why* is non-obvious
 - Don't abstract until you have three concrete repetitions
 
+## Development Workflow
+
+- **Small PRs**: Each PR should do one coherent thing. Prefer multiple focused PRs over a single large one so changes are easy to review and understand.
+- **Branch from main**: Feature branches off `main`; merge via PR, not direct push.
+- **Docs as memory**: Design decisions, data schemas, and feature specs live in `docs/` as Markdown. Keep these separate from source code. Update them when decisions change — they are the source of truth for *why*, not just *what*.
+
+### `docs/` structure
+
+```
+docs/
+  data-schema.md      # Shape of kanji.json and related data structures
+  features/           # One file per feature: scope, design decisions, open questions
+  adr/                # Architecture Decision Records for significant choices
+```
+
 ## Constraints
 
 - Keep the JS bundle small. Establish and document a size budget once the initial build is working.
