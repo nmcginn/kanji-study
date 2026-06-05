@@ -32,6 +32,8 @@
     --color-text: #e8e8e8;
     --color-text-muted: #999999;
   }
+
+  .kanji-card .kanji { color: #ffffff; }
 }
 
 /* Reset */
