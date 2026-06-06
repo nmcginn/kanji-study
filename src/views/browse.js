@@ -1,4 +1,5 @@
 import { loadKanji, sortBy } from '../lib/kanji.js';
+import { loadProgress, getCardStatus } from '../lib/srs.js';
 
 let state = {
   all: null,
@@ -8,6 +9,7 @@ let state = {
   sortField: 'r',
   sortAsc: true,
   selected: null,
+  progress: {},
 };
 
 export function browseView() {
@@ -54,7 +56,9 @@ function esc(str) {
 }
 
 async function initBrowse() {
-  state = { all: null, kanjiMap: null, jlpt: null, query: '', sortField: 'r', sortAsc: true, selected: null };
+  state = { all: null, kanjiMap: null, jlpt: null, query: '', sortField: 'r', sortAsc: true, selected: null, progress: {} };
+
+  state.progress = loadProgress();
 
   try {
     state.all = await loadKanji();
@@ -162,7 +166,9 @@ function render() {
 
   gridEl.innerHTML = filtered.map(k => {
     const meaning = k.m[0] ?? '';
-    return `<button class="kanji-card" data-char="${esc(k.c)}" aria-label="${esc(k.c)} — ${esc(meaning)}">
+    const status = getCardStatus(state.progress, k.c);
+    const statusClass = status !== 'new' ? ` kanji-card--${status}` : '';
+    return `<button class="kanji-card${statusClass}" data-char="${esc(k.c)}" aria-label="${esc(k.c)} — ${esc(meaning)}">
       <span class="kanji">${esc(k.c)}</span>
       <span class="kanji-card-meaning">${esc(meaning)}</span>
     </button>`;

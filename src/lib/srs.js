@@ -55,6 +55,13 @@ export function applyRating(state, rating, isNew) {
   return { interval: i, ease: newEase, due: addDays(i), reps };
 }
 
+// Returns 'new' | 'due' | 'known' for a single character.
+export function getCardStatus(progress, char) {
+  const state = progress[char];
+  if (!state) return 'new';
+  return isDue(state) ? 'due' : 'known';
+}
+
 // Returns an ordered array of kanji objects for a session.
 // Due reviews come first, then fresh new cards up to newLimit.
 export function buildQueue(allKanji, progress, { deck, newLimit }) {

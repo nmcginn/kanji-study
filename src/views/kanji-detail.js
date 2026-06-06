@@ -1,4 +1,5 @@
 import { loadKanji } from '../lib/kanji.js';
+import { loadProgress, saveProgress, isDue } from '../lib/srs.js';
 
 const RESOURCES = [
   {
@@ -43,6 +44,23 @@ function esc(str) {
     .replace(/>/g, '&gt;');
 }
 
+function srsBodyHtml(char) {
+  const progress = loadProgress();
+  const state = progress[char];
+  if (!state) {
+    return `<p class="srs-unseen">This kanji hasn't been studied in drill mode yet.</p>`;
+  }
+  const isDueNow = isDue(state);
+  const dueText = isDueNow ? 'due now' : `next review ${state.due}`;
+  return `
+    <div class="srs-row">
+      <span class="tag ${isDueNow ? 'tag--due' : 'tag--known'}">${isDueNow ? 'Due' : 'Up to date'}</span>
+      <span class="srs-detail">${state.reps} review${state.reps !== 1 ? 's' : ''} · ${state.interval}d interval · ${dueText}</span>
+    </div>
+    <button class="btn srs-forget-btn" id="srs-forget-btn">Forget this kanji</button>
+  `;
+}
+
 async function initKanjiDetail(char) {
   const root = document.getElementById('kanji-detail-root');
   if (!root) return;
@@ -73,6 +91,27 @@ async function initKanjiDetail(char) {
     </a>
   `).join('');
 
+  root.addEventListener('click', e => {
+    const body = document.getElementById('srs-body');
+    if (!body) return;
+    if (e.target.id === 'srs-forget-btn') {
+      body.innerHTML = `
+        <p class="srs-confirm-text">Reset study progress for 「${esc(k.c)}」? This cannot be undone.</p>
+        <div class="srs-confirm-actions">
+          <button class="btn btn-danger" id="srs-confirm-yes">Reset progress</button>
+          <button class="btn" id="srs-confirm-no">Cancel</button>
+        </div>
+      `;
+    } else if (e.target.id === 'srs-confirm-yes') {
+      const progress = loadProgress();
+      delete progress[char];
+      saveProgress(progress);
+      body.innerHTML = srsBodyHtml(char);
+    } else if (e.target.id === 'srs-confirm-no') {
+      body.innerHTML = srsBodyHtml(char);
+    }
+  });
+
   root.innerHTML = `
     <div class="kanji-detail">
       <a class="back-link" href="#/browse">← Back to browse</a>
@@ -102,6 +141,10 @@ async function initKanjiDetail(char) {
         <div class="resource-grid">
           ${resourceLinks}
         </div>
+      </section>
+      <section class="srs-section">
+        <h2 class="resource-section-title">Study progress</h2>
+        <div id="srs-body">${srsBodyHtml(char)}</div>
       </section>
     </div>
   `;
