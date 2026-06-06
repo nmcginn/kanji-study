@@ -1,5 +1,5 @@
 import { loadKanji } from '../lib/kanji.js';
-import { loadProgress, saveProgress, applyRating, buildQueue } from '../lib/srs.js';
+import { loadProgress, saveProgress, applyRating, buildQueue, RATINGS } from '../lib/srs.js';
 
 // Session state — module-level so it persists across re-renders within a session
 let phase = 'setup'; // 'setup' | 'session' | 'summary'
@@ -124,13 +124,6 @@ async function startSession() {
 
 // ─── Session ─────────────────────────────────────────────────────────────────
 
-function getRatingOptions() {
-  // RTK mode omits "Hard" — the user either drew it or didn't.
-  return sessionMode === 'rtk'
-    ? [{ label: 'Again', v: 0 }, { label: 'Good', v: 2 }, { label: 'Easy', v: 3 }]
-    : [{ label: 'Again', v: 0 }, { label: 'Hard', v: 1 }, { label: 'Good', v: 2 }, { label: 'Easy', v: 3 }];
-}
-
 function renderSession() {
   const card      = queue[idx];
   const remaining = queue.length - idx;
@@ -209,7 +202,7 @@ function showAnswer() {
   const controls = document.getElementById('drill-controls');
   if (!controls) return;
 
-  const opts = getRatingOptions();
+  const opts = RATINGS;
   controls.className = 'drill-ratings';
   controls.innerHTML = opts.map(r =>
     `<button class="btn rating-btn rating-${r.label.toLowerCase()}" data-rating="${r.v}">${r.label}</button>`
@@ -229,8 +222,8 @@ function handleRating(rating) {
   else                   stats.easy++;
 
   if (rating === 0) {
-    // "Again": re-queue for retry. Review cards still get their SRS state updated
-    // (interval reset to 1, due tomorrow) so progress is saved even if we retry now.
+    // "Again": re-queue for retry. Review cards get state saved with due=today so
+    // they stay orange (due) on the browse page rather than flipping to green.
     queue.push(card);
     isNewArr.push(wasNew);
     if (!wasNew) {
@@ -260,7 +253,6 @@ function renderSummary() {
   const total   = stats.again + stats.hard + stats.good + stats.easy;
   const correct = stats.hard + stats.good + stats.easy;
   const pct     = total > 0 ? Math.round((correct / total) * 100) : 0;
-  const isRtk   = sessionMode === 'rtk';
 
   const breakdownRow = (key, label) => `
     <div class="breakdown-row">
@@ -294,7 +286,7 @@ function renderSummary() {
 
       <div class="summary-breakdown">
         ${breakdownRow('again', 'Again')}
-        ${!isRtk ? breakdownRow('hard', 'Hard') : ''}
+        ${breakdownRow('hard', 'Hard')}
         ${breakdownRow('good', 'Good')}
         ${breakdownRow('easy', 'Easy')}
       </div>
