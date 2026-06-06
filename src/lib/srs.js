@@ -24,6 +24,13 @@ export function isDue(state) {
   return !!state && state.due <= today();
 }
 
+export const RATINGS = [
+  { label: 'Again', v: 0 },
+  { label: 'Hard',  v: 1 },
+  { label: 'Good',  v: 2 },
+  { label: 'Easy',  v: 3 },
+];
+
 // rating: 0=Again, 1=Hard, 2=Good, 3=Easy
 // isNew: card has no saved state (never graduated from a session)
 // Returns new CardState, or null when a new card gets "Again" (don't save yet)
@@ -39,7 +46,7 @@ export function applyRating(state, rating, isNew) {
   const reps = (state.reps ?? 0) + 1;
 
   if (rating === 0) {
-    return { interval: 1, ease: Math.max(1.3, ease - 0.20), due: addDays(1), reps };
+    return { interval: 1, ease: Math.max(1.3, ease - 0.20), due: today(), reps };
   }
   if (rating === 1) {
     const i = Math.max(1, Math.round(interval * 1.2));
