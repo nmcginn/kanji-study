@@ -1,6 +1,7 @@
 import { browseView } from './views/browse.js';
 import { drillView } from './views/drill.js';
 import { settingsView } from './views/settings.js';
+import { kanjiDetailView } from './views/kanji-detail.js';
 
 const routes = {
   '/': homeView,
@@ -24,6 +25,16 @@ function homeView() {
 
 function navigate() {
   const hash = location.hash.slice(1) || '/';
+
+  if (hash.startsWith('/kanji/')) {
+    const char = decodeURIComponent(hash.slice('/kanji/'.length));
+    const result = kanjiDetailView(char);
+    document.getElementById('app').innerHTML = result.html;
+    result.init?.();
+    updateActiveNav('/browse');
+    return;
+  }
+
   const view = routes[hash] ?? notFoundView;
   const result = view();
   if (typeof result === 'string') {

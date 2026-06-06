@@ -210,6 +210,7 @@ function renderDetail() {
           <span class="kanji">${esc(kun)}</span>
         </div>
       </div>
+      <a class="detail-more-link" href="#/kanji/${encodeURIComponent(k.c)}">View full details →</a>
     </div>
   `;
 }
