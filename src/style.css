@@ -34,6 +34,10 @@
   }
 
   .kanji-card .kanji { color: #ffffff; }
+
+  .chip { border-color: #4a4a4a; color: #bbbbbb; }
+  .setup-mode-card { border-color: #4a4a4a; }
+  .setup-mode-card span:last-of-type { color: #bbbbbb; }
 }
 
 /* Reset */
