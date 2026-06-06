@@ -4,6 +4,7 @@ let state = {
   all: null,
   kanjiMap: null,
   jlpt: null,
+  query: '',
   sortField: 'r',
   sortAsc: true,
   selected: null,
@@ -20,6 +21,11 @@ export function browseView() {
           <button class="chip" data-jlpt="3">N3</button>
           <button class="chip" data-jlpt="2">N2</button>
           <button class="chip" data-jlpt="1">N1</button>
+        </div>
+        <div class="search-bar">
+          <input type="search" id="browse-search" class="search-input"
+            placeholder="Search by meaning (e.g. water) or reading (e.g. みず)…"
+            autocomplete="off" autocorrect="off" spellcheck="false" />
         </div>
         <div class="browse-toolbar">
           <span id="browse-count" class="browse-count">Loading…</span>
@@ -48,7 +54,7 @@ function esc(str) {
 }
 
 async function initBrowse() {
-  state = { all: null, kanjiMap: null, jlpt: null, sortField: 'r', sortAsc: true, selected: null };
+  state = { all: null, kanjiMap: null, jlpt: null, query: '', sortField: 'r', sortAsc: true, selected: null };
 
   try {
     state.all = await loadKanji();
@@ -69,6 +75,11 @@ async function initBrowse() {
     document.querySelectorAll('.chip').forEach(c =>
       c.classList.toggle('chip-active', c === chip)
     );
+    render();
+  });
+
+  document.getElementById('browse-search').addEventListener('input', e => {
+    state.query = e.target.value.trim();
     render();
   });
 
@@ -111,7 +122,17 @@ async function initBrowse() {
 }
 
 function getFiltered() {
-  const base = state.jlpt ? state.all.filter(k => k.j === state.jlpt) : state.all;
+  let base = state.jlpt ? state.all.filter(k => k.j === state.jlpt) : state.all;
+  if (state.query) {
+    const q = state.query;
+    // Kana (hiragana or katakana) → match on/kun readings; otherwise → match meanings
+    if (/[぀-ヿ]/.test(q)) {
+      base = base.filter(k => k.on.some(r => r.includes(q)) || k.kun.some(r => r.includes(q)));
+    } else {
+      const lower = q.toLowerCase();
+      base = base.filter(k => k.m.some(m => m.toLowerCase().includes(lower)));
+    }
+  }
   return sortBy(base, state.sortField, state.sortAsc);
 }
 
